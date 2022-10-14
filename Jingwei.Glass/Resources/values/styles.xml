@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<resources>
+
+  <style name="MainTheme" parent="MainTheme.Base">
+    <item name="windowNoTitle">true</item>
+    <item name="android:colorBackground">@android:color/black</item>
+    <item name="android:windowBackground">@android:color/black</item>
+    <item name="android:textColor">@android:color/white</item>
+  </style>
+</resources>
