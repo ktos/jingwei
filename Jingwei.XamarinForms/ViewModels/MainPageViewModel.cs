@@ -2,7 +2,6 @@
 using MQTTnet;
 using MQTTnet.Client;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -40,50 +39,7 @@ namespace Jingwei.XamarinForms.ViewModels
             }
         }
 
-        private string broker;
-
-        public string Broker
-        {
-            get { return broker; }
-            private set
-            {
-                if (this.broker != value)
-                {
-                    broker = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-
-        private string clientId;
-
-        public string ClientId
-        {
-            get { return clientId; }
-            private set
-            {
-                if (this.clientId != value)
-                {
-                    clientId = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-
-        private List<string> topics;
-
-        public List<string> Topics
-        {
-            get { return topics; }
-            private set
-            {
-                if (this.topics != value)
-                {
-                    topics = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
+        private readonly BrokerConfiguration brokerConfiguration;
 
         public DateTime LocalTime =>
             TimeZoneInfo.ConvertTimeFromUtc(
@@ -108,9 +64,7 @@ namespace Jingwei.XamarinForms.ViewModels
             Connect = new Command(InternalConnect);
             Disconnect = new Command(async _ => await client.DisconnectAsync());
 
-            ClientId = configuration.ClientId;
-            Broker = configuration.Host;
-            Topics = configuration.Topics;
+            brokerConfiguration = configuration;
 
             var factory = new MqttFactory();
             client = factory.CreateMqttClient();
@@ -131,8 +85,8 @@ namespace Jingwei.XamarinForms.ViewModels
             try
             {
                 var options = new MqttClientOptionsBuilder()
-                    .WithClientId(ClientId)
-                    .WithTcpServer(Broker)
+                    .WithClientId(brokerConfiguration.ClientId)
+                    .WithTcpServer(brokerConfiguration.Host)
                     .WithCleanSession()
                     .Build();
 
@@ -141,7 +95,7 @@ namespace Jingwei.XamarinForms.ViewModels
 
                 await client.ConnectAsync(options, CancellationToken.None);
 
-                foreach (var item in Topics)
+                foreach (var item in brokerConfiguration.Topics)
                 {
                     await client.SubscribeAsync(item);
                 }
