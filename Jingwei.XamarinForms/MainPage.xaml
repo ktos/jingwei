@@ -9,15 +9,22 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="20" />
             <RowDefinition />
-            <RowDefinition Height="20" />
+            <RowDefinition Height="30" />
         </Grid.RowDefinitions>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*" />
+            <ColumnDefinition Width="1*" />
+        </Grid.ColumnDefinitions>
 
         <Label
             Grid.Row="0"
+            Grid.Column="0"
             HorizontalOptions="CenterAndExpand"
             Text="{Binding LastMessage.Topic}" />
         <Label
             Grid.Row="1"
+            Grid.ColumnSpan="2"
             Margin="10"
             FontSize="32"
             HorizontalOptions="CenterAndExpand"
@@ -25,7 +32,15 @@
             VerticalOptions="CenterAndExpand" />
         <Label
             Grid.Row="2"
+            Grid.Column="0"
             HorizontalOptions="CenterAndExpand"
             Text="{Binding IsConnected, StringFormat='Connected: {0}'}" />
+
+        <Label
+            Grid.Row="2"
+            Grid.Column="1"
+            FontSize="Large"
+            HorizontalOptions="CenterAndExpand"
+            Text="{Binding LocalTime, StringFormat='{0:HH:mm}'}" />
     </Grid>
 </ContentPage>

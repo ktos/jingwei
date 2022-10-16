@@ -23,7 +23,8 @@ namespace Jingwei.XamarinForms.ViewModels
     internal class MainPageViewModel : INotifyPropertyChanged
     {
         private IMqttClient client;
-
+        private AutoResetEvent state;
+        private Timer timer;
         private MqttMessage lastMessage;
 
         public MqttMessage LastMessage
@@ -100,6 +101,8 @@ namespace Jingwei.XamarinForms.ViewModels
             }
         }
 
+        public DateTime LocalTime => TimeZoneInfo.ConvertTimeFromUtc(DateTime.Now.ToUniversalTime(), TimeZoneInfo.FindSystemTimeZoneById("Europe/Warsaw"));
+
         public bool IsConnected
         {
             get
@@ -130,6 +133,9 @@ namespace Jingwei.XamarinForms.ViewModels
 
             var factory = new MqttFactory();
             client = factory.CreateMqttClient();
+
+            state = new AutoResetEvent(false);
+            timer = new Timer(_ => OnPropertyChanged(nameof(LocalTime)), state, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(30));
 
             IsConnected = false;
         }
