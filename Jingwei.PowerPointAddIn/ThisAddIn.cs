@@ -69,7 +69,7 @@ namespace Jingwei.PowerPointAddIn
                             == PowerPoint.PpPlaceholderType.ppPlaceholderBody
                     )
                     {
-                        var notes = $"Slide[{slide.SlideIndex}]: {shape.TextFrame.TextRange.Text}";
+                        var notes = $"Slide {slide.SlideIndex}: {shape.TextFrame.TextRange.Text}";
                         Debug.WriteLine(notes);
 
                         var applicationMessage = new MqttApplicationMessageBuilder()
