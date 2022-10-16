@@ -8,9 +8,22 @@ using Jingwei.XamarinForms;
 
 namespace Jingwei.Droid
 {
-    [Activity(Label = "Jingwei", Icon = "@mipmap/icon", Theme = "@style/MainTheme", MainLauncher = true, ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.UiMode | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize)]
+    [Activity(
+        Label = "Jingwei",
+        Icon = "@mipmap/icon",
+        Theme = "@style/MainTheme",
+        MainLauncher = true,
+        ConfigurationChanges = ConfigChanges.ScreenSize
+            | ConfigChanges.Orientation
+            | ConfigChanges.UiMode
+            | ConfigChanges.ScreenLayout
+            | ConfigChanges.SmallestScreenSize
+    )]
     [MetaData("com.google.android.glass.VoiceTrigger", Resource = "@xml/voice_trigger")]
-    [IntentFilter(actions: new[] { "android.intent.action.MAIN" }, Categories = new[] { "android.intent.category.LAUNCHER" })]
+    [IntentFilter(
+        actions: new[] { "android.intent.action.MAIN" },
+        Categories = new[] { "android.intent.category.LAUNCHER" }
+    )]
     [IntentFilter(actions: new[] { "com.google.android.glass.action.VOICE_TRIGGER" })]
     public class MainActivity : global::Xamarin.Forms.Platform.Android.FormsAppCompatActivity
     {
@@ -24,9 +37,17 @@ namespace Jingwei.Droid
             LoadApplication(new App());
         }
 
-        public override void OnRequestPermissionsResult(int requestCode, string[] permissions, [GeneratedEnum] Android.Content.PM.Permission[] grantResults)
+        public override void OnRequestPermissionsResult(
+            int requestCode,
+            string[] permissions,
+            [GeneratedEnum] Android.Content.PM.Permission[] grantResults
+        )
         {
-            Xamarin.Essentials.Platform.OnRequestPermissionsResult(requestCode, permissions, grantResults);
+            Xamarin.Essentials.Platform.OnRequestPermissionsResult(
+                requestCode,
+                permissions,
+                grantResults
+            );
 
             base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
         }

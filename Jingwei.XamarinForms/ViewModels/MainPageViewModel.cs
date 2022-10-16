@@ -29,11 +29,7 @@ namespace Jingwei.XamarinForms.ViewModels
 
         public MqttMessage LastMessage
         {
-            get
-            {
-                return lastMessage;
-            }
-
+            get { return lastMessage; }
             private set
             {
                 if (this.lastMessage != value)
@@ -48,11 +44,7 @@ namespace Jingwei.XamarinForms.ViewModels
 
         public string Broker
         {
-            get
-            {
-                return broker;
-            }
-
+            get { return broker; }
             private set
             {
                 if (this.broker != value)
@@ -67,11 +59,7 @@ namespace Jingwei.XamarinForms.ViewModels
 
         public string ClientId
         {
-            get
-            {
-                return clientId;
-            }
-
+            get { return clientId; }
             private set
             {
                 if (this.clientId != value)
@@ -86,11 +74,7 @@ namespace Jingwei.XamarinForms.ViewModels
 
         public List<string> Topics
         {
-            get
-            {
-                return topics;
-            }
-
+            get { return topics; }
             private set
             {
                 if (this.topics != value)
@@ -101,19 +85,16 @@ namespace Jingwei.XamarinForms.ViewModels
             }
         }
 
-        public DateTime LocalTime => TimeZoneInfo.ConvertTimeFromUtc(DateTime.Now.ToUniversalTime(), TimeZoneInfo.FindSystemTimeZoneById("Europe/Warsaw"));
+        public DateTime LocalTime =>
+            TimeZoneInfo.ConvertTimeFromUtc(
+                DateTime.Now.ToUniversalTime(),
+                TimeZoneInfo.FindSystemTimeZoneById("Europe/Warsaw")
+            );
 
         public bool IsConnected
         {
-            get
-            {
-                return client.IsConnected;
-            }
-
-            private set
-            {
-                OnPropertyChanged();
-            }
+            get { return client.IsConnected; }
+            private set { OnPropertyChanged(); }
         }
 
         public int VisibleRows => 5;
@@ -135,7 +116,12 @@ namespace Jingwei.XamarinForms.ViewModels
             client = factory.CreateMqttClient();
 
             state = new AutoResetEvent(false);
-            timer = new Timer(_ => OnPropertyChanged(nameof(LocalTime)), state, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(30));
+            timer = new Timer(
+                _ => OnPropertyChanged(nameof(LocalTime)),
+                state,
+                TimeSpan.FromSeconds(5),
+                TimeSpan.FromSeconds(30)
+            );
 
             IsConnected = false;
         }
@@ -168,7 +154,9 @@ namespace Jingwei.XamarinForms.ViewModels
             client.ApplicationMessageReceivedAsync += Client_ApplicationMessageReceivedAsync;
         }
 
-        private async Task Client_ApplicationMessageReceivedAsync(MqttApplicationMessageReceivedEventArgs e)
+        private async Task Client_ApplicationMessageReceivedAsync(
+            MqttApplicationMessageReceivedEventArgs e
+        )
         {
             LastMessage = new MqttMessage
             {

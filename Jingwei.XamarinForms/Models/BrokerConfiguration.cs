@@ -10,11 +10,7 @@ namespace Jingwei.XamarinForms.Models
 
         public string Host
         {
-            get
-            {
-                return mqttBroker;
-            }
-
+            get { return mqttBroker; }
             set
             {
                 if (mqttBroker != value)
@@ -29,11 +25,7 @@ namespace Jingwei.XamarinForms.Models
 
         public string ClientId
         {
-            get
-            {
-                return clientId;
-            }
-
+            get { return clientId; }
             set
             {
                 if (this.clientId != value)
@@ -48,11 +40,7 @@ namespace Jingwei.XamarinForms.Models
 
         public List<string> Topics
         {
-            get
-            {
-                return topics;
-            }
-
+            get { return topics; }
             set
             {
                 if (this.topics != value)

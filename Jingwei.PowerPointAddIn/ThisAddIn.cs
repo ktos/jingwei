@@ -19,7 +19,12 @@ namespace Jingwei.PowerPointAddIn
     public partial class ThisAddIn
     {
         private IMqttClient mqttClient;
-        private string configFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "jingwei.json");
+
+        private string configFile = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "jingwei.json"
+        );
+
         private Config config = null;
 
         private void ThisAddIn_Startup(object sender, System.EventArgs e)
@@ -58,21 +63,25 @@ namespace Jingwei.PowerPointAddIn
                 PowerPoint.SlideRange notesPages = slide.NotesPage;
                 foreach (PowerPoint.Shape shape in notesPages.Shapes)
                 {
-                    if (shape.Type == MsoShapeType.msoPlaceholder)
+                    if (
+                        shape.Type == MsoShapeType.msoPlaceholder
+                        && shape.PlaceholderFormat.Type
+                            == PowerPoint.PpPlaceholderType.ppPlaceholderBody
+                    )
                     {
-                        if (shape.PlaceholderFormat.Type == PowerPoint.PpPlaceholderType.ppPlaceholderBody)
-                        {
-                            var notes = "Slide[" + slide.SlideIndex + "] Notes: [" + shape.TextFrame.TextRange.Text + "]";
-                            Debug.WriteLine(notes);
+                        var notes = $"Slide[{slide.SlideIndex}]: {shape.TextFrame.TextRange.Text}";
+                        Debug.WriteLine(notes);
 
-                            var applicationMessage = new MqttApplicationMessageBuilder()
-                                .WithTopic("powerpoint")
-                                .WithPayload(notes)
-                                .Build();
+                        var applicationMessage = new MqttApplicationMessageBuilder()
+                            .WithTopic("powerpoint")
+                            .WithPayload(notes)
+                            .Build();
 
-                            if (mqttClient.IsConnected)
-                                await mqttClient.PublishAsync(applicationMessage, CancellationToken.None);
-                        }
+                        if (mqttClient.IsConnected)
+                            await mqttClient.PublishAsync(
+                                applicationMessage,
+                                CancellationToken.None
+                            );
                     }
                 }
             }
