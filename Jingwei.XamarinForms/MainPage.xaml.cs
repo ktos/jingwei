@@ -45,7 +45,11 @@ namespace Jingwei.XamarinForms
             }
             else if (e.KeyCode == KeyCode.DpadDown || e.KeyCode == KeyCode.Back)
             {
-                vm.Disconnect.Execute(null);
+                if (vm.IsConnected)
+                {
+                    vm.Disconnect.Execute(null);
+                    e.Handled = true;
+                }
             }
         }
     }
