@@ -231,7 +231,7 @@
     <ManifestKeyFile>Jingwei.PowerPointAddIn_TemporaryKey.pfx</ManifestKeyFile>
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestCertificateThumbprint>DFBFC413A45B6E7C5BA09D7F7A9A70476AC8EF0E</ManifestCertificateThumbprint>
+    <ManifestCertificateThumbprint>4D61304D9DF83DCF2D2E6445AF52D86B33469C8F</ManifestCertificateThumbprint>
   </PropertyGroup>
   <!-- Include the build rules for a C# project. -->
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

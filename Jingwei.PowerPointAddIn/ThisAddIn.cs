@@ -1,4 +1,5 @@
 ﻿using Microsoft.Office.Core;
+using Microsoft.Office.Interop.PowerPoint;
 using MQTTnet;
 using MQTTnet.Client;
 using System;
@@ -84,6 +85,22 @@ namespace Jingwei.PowerPointAddIn
                             );
                     }
                 }
+            }
+            else
+            {
+                var notes = $"Slide {slide.SlideIndex}";
+                Debug.WriteLine(notes);
+
+                var applicationMessage = new MqttApplicationMessageBuilder()
+                    .WithTopic("powerpoint")
+                    .WithPayload(notes)
+                    .Build();
+
+                if (mqttClient.IsConnected)
+                    await mqttClient.PublishAsync(
+                        applicationMessage,
+                        CancellationToken.None
+                    );
             }
         }
 
