@@ -1,0 +1,26 @@
+{
+  "name": "mentraos-cloud-example-app",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "bun src/index.ts",
+    "dev": "bun --hot src/index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@mentra/react": "^2.0.2",
+    "@mentra/sdk": "latest",
+    "express": "^4.21.2",
+    "mqtt": "^5.14.1",
+    "ws": "^8.18.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/express": "^5.0.1",
+    "@types/node": "^22.13.14",
+    "@types/ws": "^8.18.0"
+  }
+}
