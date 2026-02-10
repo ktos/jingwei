@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
@@ -8,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.Office.Core;
 using MQTTnet;
 using MQTTnet.Client;
+using MQTTnet.Exceptions;
 using PowerPoint = Microsoft.Office.Interop.PowerPoint;
 
 namespace Jingwei.PowerPointAddIn
@@ -74,23 +76,30 @@ namespace Jingwei.PowerPointAddIn
                 var mqttClientOptions = new MqttClientOptionsBuilder()
                     .WithTcpServer(config.Server)
                     .WithClientId(config.ClientId)
-                    .WithTls(
-                        new MqttClientOptionsBuilderTlsParameters()
-                        {
-                            UseTls = true,
-                            SslProtocol = System.Security.Authentication.SslProtocols.Tls12,
-
+                    .WithTlsOptions(options =>
+                        options
+                            .UseTls()
                             // ignore server certificate validation
                             // it should be possible to validate the server certificate with a custom CA, see:
                             // https://github.com/dotnet/MQTTnet/wiki/Client#using-a-custom-ca-with-tls
-                            CertificateValidationHandler = (context) => true,
-                            Certificates = new[] { clientCert },
-                        }
+                            .WithIgnoreCertificateChainErrors()
+                            .WithAllowUntrustedCertificates()
+                            .WithClientCertificates(new List<X509Certificate2>() { clientCert })
+                            .WithSslProtocols(System.Security.Authentication.SslProtocols.Tls12)
                     )
                     .Build();
 
-                await mqttClient.ConnectAsync(mqttClientOptions, CancellationToken.None);
-                Debug.WriteLine("Connected to MQTT broker with mTLS.");
+                try
+                {
+                    await mqttClient.ConnectAsync(mqttClientOptions, CancellationToken.None);
+
+                    if (config.IsDebug)
+                        Debug.WriteLine("Connected to MQTT broker with mTLS.");
+                }
+                catch (MqttCommunicationException ex)
+                {
+                    Debug.WriteLine($"Failed to connect to MQTT broker: {ex.Message}");
+                }
             }
             else
             {
