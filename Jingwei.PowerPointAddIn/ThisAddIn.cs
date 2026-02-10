@@ -7,7 +7,6 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Office.Core;
-using Microsoft.Office.Tools;
 using MQTTnet;
 using MQTTnet.Client;
 using MQTTnet.Exceptions;
@@ -99,6 +98,7 @@ namespace Jingwei.PowerPointAddIn
             var mqttFactory = new MqttFactory();
 
             mqttClient = mqttFactory.CreateMqttClient();
+            MqttClientOptions mqttClientOptions = null;
 
             if (config.UseMTls)
             {
@@ -109,7 +109,7 @@ namespace Jingwei.PowerPointAddIn
                     )
                 );
 
-                var mqttClientOptions = new MqttClientOptionsBuilder()
+                mqttClientOptions = new MqttClientOptionsBuilder()
                     .WithTcpServer(config.Server)
                     .WithClientId(config.ClientId)
                     .WithTlsOptions(options =>
@@ -124,27 +124,23 @@ namespace Jingwei.PowerPointAddIn
                             .WithSslProtocols(System.Security.Authentication.SslProtocols.Tls12)
                     )
                     .Build();
-
-                try
-                {
-                    await mqttClient.ConnectAsync(mqttClientOptions, CancellationToken.None);
-
-                    if (config.IsDebug)
-                        Log("Connected to MQTT broker with mTLS.");
-                }
-                catch (MqttCommunicationException ex)
-                {
-                    Log($"Failed to connect to MQTT broker: {ex.Message}");
-                }
             }
             else
             {
-                var mqttClientOptions = new MqttClientOptionsBuilder()
+                mqttClientOptions = new MqttClientOptionsBuilder()
                     .WithTcpServer(config.Server)
                     .WithClientId(config.ClientId)
                     .Build();
+            }
 
+            try
+            {
                 await mqttClient.ConnectAsync(mqttClientOptions, CancellationToken.None);
+                Log("Connected to MQTT broker with mTLS.");
+            }
+            catch (MqttCommunicationException ex)
+            {
+                Log($"Failed to connect to MQTT broker: {ex.Message}");
             }
         }
 
@@ -156,7 +152,7 @@ namespace Jingwei.PowerPointAddIn
             bool success = await SendMqttMessageAsync(message);
 
             if (!success)
-                Log("Failed to send MQTT message.");
+                Log("Failed to send, slide " + slide.SlideNumber);
             else if (config.IsDebug)
                 Log("Message sent, slide " + slide.SlideNumber);
         }
