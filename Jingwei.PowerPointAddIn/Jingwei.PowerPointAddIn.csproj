@@ -216,11 +216,20 @@
     <Compile Include="JingweiStatus.Designer.cs">
       <DependentUpon>JingweiStatus.cs</DependentUpon>
     </Compile>
+    <Compile Include="ManageTaskPaneRibbon.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="ManageTaskPaneRibbon.Designer.cs">
+      <DependentUpon>ManageTaskPaneRibbon.cs</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
     <EmbeddedResource Include="JingweiStatus.resx">
       <DependentUpon>JingweiStatus.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ManageTaskPaneRibbon.resx">
+      <DependentUpon>ManageTaskPaneRibbon.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

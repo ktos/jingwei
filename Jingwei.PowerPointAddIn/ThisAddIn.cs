@@ -34,6 +34,7 @@ namespace Jingwei.PowerPointAddIn
 
         private Config config = null;
         private JingweiStatus statusPane;
+        public Microsoft.Office.Tools.CustomTaskPane TaskPane { get; set; }
 
         private void ThisAddIn_Startup(object sender, System.EventArgs e)
         {
@@ -43,11 +44,13 @@ namespace Jingwei.PowerPointAddIn
                 if (string.IsNullOrEmpty(config.ClientId))
                     config.ClientId = Environment.MachineName.ToLower();
 
+                statusPane = new JingweiStatus();
+                TaskPane = this.CustomTaskPanes.Add(statusPane, "Jingwei Status");
+                TaskPane.VisibleChanged += TaskPane_VisibleChanged;
+
                 if (config.IsDebug)
                 {
-                    statusPane = new JingweiStatus();
-                    var taskPane = this.CustomTaskPanes.Add(statusPane, "Jingwei Status");
-                    taskPane.Visible = true;
+                    TaskPane.Visible = true;
                     Log("Waiting for slideshow to start...");
                 }
 
@@ -61,6 +64,11 @@ namespace Jingwei.PowerPointAddIn
             }
         }
 
+        private void TaskPane_VisibleChanged(object sender, EventArgs e)
+        {
+            Globals.Ribbons.ManageTaskPaneRibbon.paneToggle.Checked = TaskPane.Visible;
+        }
+
         private void Application_SlideShowEnd(PowerPoint.Presentation Pres)
         {
             Log("Slideshow ended.");
@@ -68,10 +76,10 @@ namespace Jingwei.PowerPointAddIn
 
         private void Log(string v)
         {
+            statusPane.Log(v);
             if (config != null && config.IsDebug)
             {
                 Debug.WriteLine(v);
-                statusPane.Log(v);
             }
             else
             {
