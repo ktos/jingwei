@@ -38,20 +38,22 @@ namespace Jingwei.PowerPointAddIn
 
         private void ThisAddIn_Startup(object sender, System.EventArgs e)
         {
+            statusPane = new JingweiStatus();
+            TaskPane = this.CustomTaskPanes.Add(statusPane, "Jingwei Status");
+            TaskPane.VisibleChanged += TaskPane_VisibleChanged;
+
             if (File.Exists(configFile))
             {
                 config = JsonSerializer.Deserialize<Config>(File.ReadAllText(configFile));
                 if (string.IsNullOrEmpty(config.ClientId))
                     config.ClientId = Environment.MachineName.ToLower();
 
-                statusPane = new JingweiStatus();
-                TaskPane = this.CustomTaskPanes.Add(statusPane, "Jingwei Status");
-                TaskPane.VisibleChanged += TaskPane_VisibleChanged;
-
                 if (config.IsDebug)
                 {
                     TaskPane.Visible = true;
-                    Log("Waiting for slideshow to start...");
+                    Log($"Client Id: {config.ClientId}");
+                    Log($"MQTT Server: {config.Server}");
+                    Log($"Use mTLS: {config.UseMTls}");
                 }
 
                 Application.SlideShowBegin += OnSlideShowBegin;
@@ -60,7 +62,7 @@ namespace Jingwei.PowerPointAddIn
             }
             else
             {
-                Log("Configuration file not found, aborting.");
+                Log("Not configured.");
             }
         }
 
@@ -77,11 +79,8 @@ namespace Jingwei.PowerPointAddIn
         private void Log(string v)
         {
             statusPane.Log(v);
+
             if (config != null && config.IsDebug)
-            {
-                Debug.WriteLine(v);
-            }
-            else
             {
                 Debug.WriteLine(v);
             }
