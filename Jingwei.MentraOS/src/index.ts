@@ -26,19 +26,13 @@ class ExampleMentraOSApp extends AppServer {
   protected async onSession(session: AppSession, sessionId: string, userId: string): Promise<void> {
     session.layouts.showTextWall("Establishing connection...");
 
-    // mqtt.
-
-    this.client = mqtt.connect({
-      host: "192.168.8.204",
-      port: 8883,
+    this.client = mqtt.connect(process.env.JINGWEI_MQTT ?? "", {
       rejectUnauthorized: false,
       key: KEY,
       cert: CERT,
       ca: TRUSTED_CA_LIST,
-      protocol: 'mqtts',
       clientId: "mentra_" + Math.random().toString(16).substring(2, 8)
     });
-    console.log(this.client);
 
     this.client.on("connect", () => {
       session.layouts.showTextWall("Waiting for presentation to start...");
@@ -50,8 +44,16 @@ class ExampleMentraOSApp extends AppServer {
     });
 
     this.client.on("message", (topic: any, message: Buffer) => {
-      this.logger.info(message.toString());
-      session.layouts.showTextWall(`${message.toString()}`);
+      let msg = message.toString();
+
+      // handling end presentation message
+      if (msg == "|JINGWEI_END|") {
+        session.layouts.clearView();
+        return;
+      }
+
+      this.logger.info(msg);
+      session.layouts.showTextWall(msg);
     });
   }
 
