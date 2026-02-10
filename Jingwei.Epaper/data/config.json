@@ -1,0 +1,15 @@
+{
+    "ssids": [
+        {
+            "ssid": "Ruby",
+            "password": "c2n52v2ugkgsz82"
+        },
+        {
+            "ssid": "kilibar_iot",
+            "password": "RASengan91"
+        }
+    ],
+    "broker": "51.159.24.174",
+    "brokerPort": 1883,
+    "mqttClientId": "fe518fc2-ac64-42e6-93b3-60c87082c784"
+}
