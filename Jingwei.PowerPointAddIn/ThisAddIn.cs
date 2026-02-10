@@ -81,10 +81,9 @@ namespace Jingwei.PowerPointAddIn
                             SslProtocol = System.Security.Authentication.SslProtocols.Tls12,
 
                             // ignore server certificate validation
-                            CertificateValidationHandler = (o) =>
-                            {
-                                return true;
-                            },
+                            // it should be possible to validate the server certificate with a custom CA, see:
+                            // https://github.com/dotnet/MQTTnet/wiki/Client#using-a-custom-ca-with-tls
+                            CertificateValidationHandler = (context) => true,
                             Certificates = new[] { clientCert },
                         }
                     )
