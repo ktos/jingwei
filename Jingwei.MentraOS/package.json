@@ -11,16 +11,16 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@mentra/react": "^2.0.2",
+    "@mentra/react": "^2.1.2",
     "@mentra/sdk": "latest",
-    "express": "^4.21.2",
-    "mqtt": "^5.14.1",
-    "ws": "^8.18.1"
+    "express": "^4.22.1",
+    "mqtt": "^5.15.0",
+    "ws": "^8.19.0"
   },
   "devDependencies": {
-    "typescript": "^5.0.0",
-    "@types/express": "^5.0.1",
-    "@types/node": "^22.13.14",
-    "@types/ws": "^8.18.0"
+    "typescript": "^5.9.3",
+    "@types/express": "^5.0.6",
+    "@types/node": "^22.19.11",
+    "@types/ws": "^8.18.1"
   }
 }

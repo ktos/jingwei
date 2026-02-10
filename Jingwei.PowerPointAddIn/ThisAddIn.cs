@@ -6,7 +6,9 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using Microsoft.Office.Core;
+using Microsoft.Office.Interop.PowerPoint;
 using MQTTnet;
 using MQTTnet.Client;
 using MQTTnet.Exceptions;
@@ -24,6 +26,7 @@ namespace Jingwei.PowerPointAddIn
 
     public partial class ThisAddIn
     {
+        private const string END_MESSAGE = "|JINGWEI_END|";
         private IMqttClient mqttClient;
 
         private string configFile = Path.Combine(
@@ -70,9 +73,13 @@ namespace Jingwei.PowerPointAddIn
             Globals.Ribbons.ManageTaskPaneRibbon.paneToggle.Checked = TaskPane.Visible;
         }
 
-        private void Application_SlideShowEnd(PowerPoint.Presentation Pres)
+        private async void Application_SlideShowEnd(PowerPoint.Presentation Pres)
         {
             Log("Slideshow ended.");
+            bool success = await SendMqttMessageAsync(END_MESSAGE);
+
+            if (!success)
+                Log("Failed to send end message.");
         }
 
         private void Log(string v)
