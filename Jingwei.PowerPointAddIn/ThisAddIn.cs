@@ -4,8 +4,8 @@ using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Office.Core;
-using Microsoft.Office.Interop.PowerPoint;
 using MQTTnet;
 using MQTTnet.Client;
 using PowerPoint = Microsoft.Office.Interop.PowerPoint;
@@ -17,6 +17,7 @@ namespace Jingwei.PowerPointAddIn
         public string Server { get; set; }
         public string ClientId { get; set; }
         public bool UseMTls { get; set; }
+        public bool IsDebug { get; set; }
     }
 
     public partial class ThisAddIn
@@ -48,6 +49,14 @@ namespace Jingwei.PowerPointAddIn
         }
 
         private async void OnSlideShowBegin(PowerPoint.SlideShowWindow Wn)
+        {
+            await ConnectMqtt();
+
+            // send the first slide info when the slideshow starts
+            OnNextSlide(Wn);
+        }
+
+        private async Task ConnectMqtt()
         {
             var mqttFactory = new MqttFactory();
 
@@ -98,50 +107,76 @@ namespace Jingwei.PowerPointAddIn
         private async void OnNextSlide(PowerPoint.SlideShowWindow Wn)
         {
             PowerPoint.Slide slide = Wn.View.Slide;
-            if (slide.HasNotesPage == MsoTriState.msoTrue)
+
+            string message = GetCurrentSlideInfo(slide);
+            bool success = await SendMqttMessageAsync(message);
+
+            if (config.IsDebug)
             {
-                PowerPoint.SlideRange notesPages = slide.NotesPage;
-                foreach (PowerPoint.Shape shape in notesPages.Shapes)
+                if (success)
                 {
-                    if (
-                        shape.Type == MsoShapeType.msoPlaceholder
-                        && shape.PlaceholderFormat.Type
-                            == PowerPoint.PpPlaceholderType.ppPlaceholderBody
-                    )
-                    {
-                        var notes =
-                            $"Slide {slide.SlideIndex}/{slide.SlideNumber}: {shape.TextFrame.TextRange.Text}";
-                        Debug.WriteLine(notes);
-
-                        var applicationMessage = new MqttApplicationMessageBuilder()
-                            .WithTopic("powerpoint")
-                            .WithPayload(notes)
-                            .Build();
-
-                        if (mqttClient.IsConnected)
-                        {
-                            var result = await mqttClient.PublishAsync(
-                                applicationMessage,
-                                CancellationToken.None
-                            );
-                            Debug.WriteLine("Published notes to MQTT broker.");
-                        }
-                    }
+                    Debug.WriteLine($"Sent MQTT message: {message}");
+                }
+                else
+                {
+                    Debug.WriteLine("Failed to send MQTT message.");
                 }
             }
-            else
+        }
+
+        private async Task<bool> SendMqttMessageAsync(string message)
+        {
+            var applicationMessage = new MqttApplicationMessageBuilder()
+                .WithTopic("powerpoint")
+                .WithPayload(message)
+                .Build();
+
+            if (mqttClient.IsConnected)
             {
-                var notes = $"Slide {slide.SlideIndex}";
-                Debug.WriteLine(notes);
-
-                var applicationMessage = new MqttApplicationMessageBuilder()
-                    .WithTopic("powerpoint")
-                    .WithPayload(notes)
-                    .Build();
-
-                if (mqttClient.IsConnected)
-                    await mqttClient.PublishAsync(applicationMessage, CancellationToken.None);
+                var result = await mqttClient.PublishAsync(
+                    applicationMessage,
+                    CancellationToken.None
+                );
+                if (result.ReasonCode == MqttClientPublishReasonCode.Success)
+                {
+                    return true;
+                }
             }
+
+            return false;
+        }
+
+        private string GetCurrentSlideInfo(PowerPoint.Slide slide)
+        {
+            string notes = null;
+            if (slide.HasNotesPage == MsoTriState.msoTrue)
+            {
+                notes = GetSlideNotes(slide);
+            }
+
+            var message = $"Slide #{slide.SlideIndex}";
+            if (!string.IsNullOrEmpty(notes))
+                message += $": {notes}";
+
+            return message;
+        }
+
+        private string GetSlideNotes(PowerPoint.Slide slide)
+        {
+            PowerPoint.SlideRange notesPages = slide.NotesPage;
+            foreach (PowerPoint.Shape shape in notesPages.Shapes)
+            {
+                if (
+                    shape.Type == MsoShapeType.msoPlaceholder
+                    && shape.PlaceholderFormat.Type
+                        == PowerPoint.PpPlaceholderType.ppPlaceholderBody
+                )
+                {
+                    return shape.TextFrame.TextRange.Text;
+                }
+            }
+
+            return "";
         }
 
         private async void ThisAddIn_Shutdown(object sender, System.EventArgs e)
