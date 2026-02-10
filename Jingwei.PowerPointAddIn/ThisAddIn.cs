@@ -1,12 +1,13 @@
-﻿using Microsoft.Office.Core;
-using Microsoft.Office.Interop.PowerPoint;
-using MQTTnet;
-using MQTTnet.Client;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using System.Threading;
+using Microsoft.Office.Core;
+using Microsoft.Office.Interop.PowerPoint;
+using MQTTnet;
+using MQTTnet.Client;
 using PowerPoint = Microsoft.Office.Interop.PowerPoint;
 
 namespace Jingwei.PowerPointAddIn
@@ -15,6 +16,7 @@ namespace Jingwei.PowerPointAddIn
     {
         public string Server { get; set; }
         public string ClientId { get; set; }
+        public bool UseMTls { get; set; }
     }
 
     public partial class ThisAddIn
@@ -33,6 +35,9 @@ namespace Jingwei.PowerPointAddIn
             if (File.Exists(configFile))
             {
                 config = JsonSerializer.Deserialize<Config>(File.ReadAllText(configFile));
+                if (string.IsNullOrEmpty(config.ClientId))
+                    config.ClientId = Environment.MachineName.ToLower();
+
                 Application.SlideShowBegin += OnSlideShowBegin;
                 Application.SlideShowNextSlide += OnNextSlide;
             }
@@ -48,12 +53,46 @@ namespace Jingwei.PowerPointAddIn
 
             mqttClient = mqttFactory.CreateMqttClient();
 
-            var mqttClientOptions = new MqttClientOptionsBuilder()
-                .WithTcpServer(config.Server)
-                .WithClientId(config.ClientId)
-                .Build();
+            if (config.UseMTls)
+            {
+                var clientCert = new X509Certificate2(
+                    Path.Combine(
+                        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                        "jingwei.pfx"
+                    )
+                );
 
-            await mqttClient.ConnectAsync(mqttClientOptions, CancellationToken.None);
+                var mqttClientOptions = new MqttClientOptionsBuilder()
+                    .WithTcpServer(config.Server)
+                    .WithClientId(config.ClientId)
+                    .WithTls(
+                        new MqttClientOptionsBuilderTlsParameters()
+                        {
+                            UseTls = true,
+                            SslProtocol = System.Security.Authentication.SslProtocols.Tls12,
+
+                            // ignore server certificate validation
+                            CertificateValidationHandler = (o) =>
+                            {
+                                return true;
+                            },
+                            Certificates = new[] { clientCert },
+                        }
+                    )
+                    .Build();
+
+                await mqttClient.ConnectAsync(mqttClientOptions, CancellationToken.None);
+                Debug.WriteLine("Connected to MQTT broker with mTLS.");
+            }
+            else
+            {
+                var mqttClientOptions = new MqttClientOptionsBuilder()
+                    .WithTcpServer(config.Server)
+                    .WithClientId(config.ClientId)
+                    .Build();
+
+                await mqttClient.ConnectAsync(mqttClientOptions, CancellationToken.None);
+            }
         }
 
         private async void OnNextSlide(PowerPoint.SlideShowWindow Wn)
@@ -70,7 +109,8 @@ namespace Jingwei.PowerPointAddIn
                             == PowerPoint.PpPlaceholderType.ppPlaceholderBody
                     )
                     {
-                        var notes = $"Slide {slide.SlideIndex}: {shape.TextFrame.TextRange.Text}";
+                        var notes =
+                            $"Slide {slide.SlideIndex}/{slide.SlideNumber}: {shape.TextFrame.TextRange.Text}";
                         Debug.WriteLine(notes);
 
                         var applicationMessage = new MqttApplicationMessageBuilder()
@@ -79,10 +119,13 @@ namespace Jingwei.PowerPointAddIn
                             .Build();
 
                         if (mqttClient.IsConnected)
-                            await mqttClient.PublishAsync(
+                        {
+                            var result = await mqttClient.PublishAsync(
                                 applicationMessage,
                                 CancellationToken.None
                             );
+                            Debug.WriteLine("Published notes to MQTT broker.");
+                        }
                     }
                 }
             }
@@ -97,10 +140,7 @@ namespace Jingwei.PowerPointAddIn
                     .Build();
 
                 if (mqttClient.IsConnected)
-                    await mqttClient.PublishAsync(
-                        applicationMessage,
-                        CancellationToken.None
-                    );
+                    await mqttClient.PublishAsync(applicationMessage, CancellationToken.None);
             }
         }
 
