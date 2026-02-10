@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Office.Core;
+using Microsoft.Office.Tools;
 using MQTTnet;
 using MQTTnet.Client;
 using MQTTnet.Exceptions;
@@ -32,6 +33,7 @@ namespace Jingwei.PowerPointAddIn
         );
 
         private Config config = null;
+        private JingweiStatus statusPane;
 
         private void ThisAddIn_Startup(object sender, System.EventArgs e)
         {
@@ -41,12 +43,39 @@ namespace Jingwei.PowerPointAddIn
                 if (string.IsNullOrEmpty(config.ClientId))
                     config.ClientId = Environment.MachineName.ToLower();
 
+                if (config.IsDebug)
+                {
+                    statusPane = new JingweiStatus();
+                    var taskPane = this.CustomTaskPanes.Add(statusPane, "Jingwei Status");
+                    taskPane.Visible = true;
+                    Log("Waiting for slideshow to start...");
+                }
+
                 Application.SlideShowBegin += OnSlideShowBegin;
                 Application.SlideShowNextSlide += OnNextSlide;
+                Application.SlideShowEnd += Application_SlideShowEnd;
             }
             else
             {
-                Debug.WriteLine("Configuration file not found, aborting.");
+                Log("Configuration file not found, aborting.");
+            }
+        }
+
+        private void Application_SlideShowEnd(PowerPoint.Presentation Pres)
+        {
+            Log("Slideshow ended.");
+        }
+
+        private void Log(string v)
+        {
+            if (config != null && config.IsDebug)
+            {
+                Debug.WriteLine(v);
+                statusPane.Log(v);
+            }
+            else
+            {
+                Debug.WriteLine(v);
             }
         }
 
@@ -94,11 +123,11 @@ namespace Jingwei.PowerPointAddIn
                     await mqttClient.ConnectAsync(mqttClientOptions, CancellationToken.None);
 
                     if (config.IsDebug)
-                        Debug.WriteLine("Connected to MQTT broker with mTLS.");
+                        Log("Connected to MQTT broker with mTLS.");
                 }
                 catch (MqttCommunicationException ex)
                 {
-                    Debug.WriteLine($"Failed to connect to MQTT broker: {ex.Message}");
+                    Log($"Failed to connect to MQTT broker: {ex.Message}");
                 }
             }
             else
@@ -119,17 +148,10 @@ namespace Jingwei.PowerPointAddIn
             string message = GetCurrentSlideInfo(slide);
             bool success = await SendMqttMessageAsync(message);
 
-            if (config.IsDebug)
-            {
-                if (success)
-                {
-                    Debug.WriteLine($"Sent MQTT message: {message}");
-                }
-                else
-                {
-                    Debug.WriteLine("Failed to send MQTT message.");
-                }
-            }
+            if (!success)
+                Log("Failed to send MQTT message.");
+            else if (config.IsDebug)
+                Log("Message sent, slide " + slide.SlideNumber);
         }
 
         private async Task<bool> SendMqttMessageAsync(string message)
@@ -145,6 +167,7 @@ namespace Jingwei.PowerPointAddIn
                     applicationMessage,
                     CancellationToken.None
                 );
+
                 if (result.ReasonCode == MqttClientPublishReasonCode.Success)
                 {
                     return true;
@@ -191,10 +214,12 @@ namespace Jingwei.PowerPointAddIn
         {
             if (config != null)
             {
-                await mqttClient.DisconnectAsync();
+                if (mqttClient != null && mqttClient.IsConnected)
+                    await mqttClient.DisconnectAsync();
 
                 Application.SlideShowBegin -= OnSlideShowBegin;
                 Application.SlideShowNextSlide -= OnNextSlide;
+                Application.SlideShowEnd -= Application_SlideShowEnd;
             }
         }
 

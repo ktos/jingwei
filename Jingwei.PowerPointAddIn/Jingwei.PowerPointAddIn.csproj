@@ -210,9 +210,18 @@
     can be found.
   -->
   <ItemGroup>
+    <Compile Include="JingweiStatus.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="JingweiStatus.Designer.cs">
+      <DependentUpon>JingweiStatus.cs</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
+    <EmbeddedResource Include="JingweiStatus.resx">
+      <DependentUpon>JingweiStatus.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
