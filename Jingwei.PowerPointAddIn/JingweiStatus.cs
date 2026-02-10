@@ -19,7 +19,7 @@ namespace Jingwei.PowerPointAddIn
 
         internal void Log(string message)
         {
-            status.Invoke(new MethodInvoker(() => status.Text = message));
+            status.Invoke(new MethodInvoker(() => status.Items.Add(message)));
         }
     }
 }

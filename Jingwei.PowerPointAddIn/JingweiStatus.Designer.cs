@@ -28,18 +28,20 @@
 		/// </summary>
 		private void InitializeComponent()
 		{
-			this.status = new System.Windows.Forms.Label();
+			this.status = new System.Windows.Forms.ListView();
 			this.SuspendLayout();
 			// 
 			// status
 			// 
-			this.status.AutoSize = true;
 			this.status.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.status.HideSelection = false;
 			this.status.Location = new System.Drawing.Point(0, 0);
+			this.status.MultiSelect = false;
 			this.status.Name = "status";
-			this.status.Size = new System.Drawing.Size(35, 13);
+			this.status.Size = new System.Drawing.Size(150, 150);
 			this.status.TabIndex = 0;
-			this.status.Text = "label1";
+			this.status.UseCompatibleStateImageBehavior = false;
+			this.status.View = System.Windows.Forms.View.List;
 			// 
 			// JingweiStatus
 			// 
@@ -48,12 +50,11 @@
 			this.Controls.Add(this.status);
 			this.Name = "JingweiStatus";
 			this.ResumeLayout(false);
-			this.PerformLayout();
 
 		}
 
 		#endregion
 
-		private System.Windows.Forms.Label status;
+		private System.Windows.Forms.ListView status;
 	}
 }
