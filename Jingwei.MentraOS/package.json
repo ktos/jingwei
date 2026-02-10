@@ -1,5 +1,5 @@
 {
-  "name": "mentraos-cloud-example-app",
+  "name": "jingwei-mentraos",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -7,8 +7,8 @@
     "dev": "bun --hot src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "ktos",
+  "license": "GPL-3.0-only",
   "description": "",
   "dependencies": {
     "@mentra/react": "^2.1.2",
